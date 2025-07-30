@@ -1,0 +1,46 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para definir os tipos de renda
+enum IncomeType {
+  FIXED
+  VARIABLE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique // E-mail será o identificador único para login
+  name      String
+  password  String 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamento: Um usuário pode ter muitas rendas
+  incomes Income[]
+
+  @@map("users")
+}
+
+model Income {
+  id          String     @id @default(uuid())
+  description String
+  amount      Decimal    @db.Decimal(10, 2)
+  type        IncomeType
+  date        DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // --- Chave Estrangeira para o Relacionamento ---
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("incomes")
+}
